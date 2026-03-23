@@ -11,12 +11,11 @@ set -x
 
 SCRIPT_DIR=$(cd "$(dirname "$0")"; pwd)
 
-EP_LIST=(1 4)
-CONC_LIST=(4 8 16 32 64)
+EP_LIST=(1)
+CONC_LIST=(4 8 16 32 64 128)
 ISL_OSL_LIST=(
     "1024 1024"
     "8192 1024"
-    "1024 8192"
 )
 
 TOTAL=${#CONC_LIST[@]}
