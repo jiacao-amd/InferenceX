@@ -22,25 +22,24 @@ export OSL="${OSL:-1024}"
 # Concurrency (suggested values: 4, 8, 16, 32, 64)
 export CONC="${CONC:-32}"
 
-export TP=4
-export EP_SIZE="${EP_SIZE:-1}"
+export TP=8
+export EP_SIZE=1
 
-
-export MODEL="amd/Kimi-K2.5-MXFP4"
+export MODEL="moonshotai/Kimi-K2.5"
 export MAX_MODEL_LEN=$(( ISL + OSL + 200 ))
 export RANDOM_RANGE_RATIO=0.8
 export PORT=8888
 
 # Metadata required by process_result.py
 
-export PRECISION=fp4
+export PRECISION=int4
 export FRAMEWORK=vllm
 export MODEL_PREFIX=kimik2.5
 export RUNNER_TYPE=mi355x
 export DP_ATTENTION=false
 export SPEC_DECODING=none
 export DISAGG=false
-export IMAGE="vllm/vllm-openai-rocm:v0.16.0"
+export IMAGE="vllm/vllm-openai-rocm:v0.18.0"
 
 # Result filename (unique identifier, no .json suffix)
 export RESULT_FILENAME="kimik2.5_isl${ISL}_osl${OSL}_${PRECISION}_mi355x_vllm_tp${TP}-ep${EP_SIZE}-dpa${DP_ATTENTION}_disagg-${DISAGG}_spec-${SPEC_DECODING}_conc${CONC}"

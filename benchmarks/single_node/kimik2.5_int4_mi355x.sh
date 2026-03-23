@@ -26,6 +26,8 @@ fi
 SERVER_LOG=/workspace/server.log
 PORT=${PORT:-8888}
 
+export VLLM_ROCM_USE_AITER=1
+
 # Start GPU monitoring (power, temperature, clocks every second)
 start_gpu_monitor
 
