@@ -580,21 +580,25 @@ run_lm_eval() {
     local num_fewshot="${NUM_FEWSHOT:-2}"
     local results_dir="${EVAL_RESULT_DIR:-$(mktemp -d /tmp/eval_out-XXXXXX)}"
     local gen_max_tokens=16384
+    local gen_out_tokens=8192
     local temperature=0
     local top_p=1
     local concurrent_requests=32
+    local limit=""
 
     while [[ $# -gt 0 ]]; do
         case $1 in
-            --port)           port="$2"; shift 2 ;;
-            --task)           task="$2"; shift 2 ;;
-            --num-fewshot)    num_fewshot="$2"; shift 2 ;;
-            --results-dir)    results_dir="$2"; shift 2 ;;
-            --gen-max-tokens) gen_max_tokens="$2"; shift 2 ;;
-            --temperature)    temperature="$2"; shift 2 ;;
-            --top-p)          top_p="$2"; shift 2 ;;
+            --port)            port="$2"; shift 2 ;;
+            --task)            task="$2"; shift 2 ;;
+            --num-fewshot)     num_fewshot="$2"; shift 2 ;;
+            --results-dir)     results_dir="$2"; shift 2 ;;
+            --gen-max-tokens)  gen_max_tokens="$2"; shift 2 ;;
+            --gen-out-tokens)  gen_out_tokens="$2"; shift 2 ;;
+            --temperature)     temperature="$2"; shift 2 ;;
+            --top-p)           top_p="$2"; shift 2 ;;
             --concurrent-requests) concurrent_requests="$2"; shift 2 ;;
-            *)                echo "Unknown parameter: $1"; return 1 ;;
+            --limit)           limit="$2"; shift 2 ;;
+            *)                 echo "Unknown parameter: $1"; return 1 ;;
         esac
     done
 
@@ -608,14 +612,20 @@ run_lm_eval() {
 
     # Export for append_lm_eval_summary to pick up
     export EVAL_RESULT_DIR="$results_dir"
+    local limit_flag=()
+    if [[ -n "$limit" ]]; then
+        limit_flag=(--limit "$limit")
+    fi
+
     set -x
     python3 -m lm_eval --model local-chat-completions --apply_chat_template \
       --tasks "utils/evals/${task}.yaml" \
       --num_fewshot "${num_fewshot}" \
       --output_path "${results_dir}" \
       --log_samples \
+      "${limit_flag[@]}" \
       --model_args "model=${MODEL_NAME},base_url=${openai_chat_base},api_key=${OPENAI_API_KEY},eos_string=</s>,max_retries=5,num_concurrent=${concurrent_requests},timeout=600,tokenized_requests=False,max_length=${gen_max_tokens}" \
-      --gen_kwargs "max_tokens=8192,temperature=${temperature},top_p=${top_p}"
+      --gen_kwargs "max_tokens=${gen_out_tokens},temperature=${temperature},top_p=${top_p}"
     local eval_exit=$?
     set +x
     return $eval_exit
