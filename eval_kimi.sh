@@ -58,6 +58,8 @@ _default_gen_out=$(( MAX_MODEL_LEN - 1024 ))
 (( _default_gen_out < 1 )) && _default_gen_out=1
 export GEN_MAX_TOKENS="${GEN_MAX_TOKENS:-$_default_gen_out}"
 export EVAL_RESULT_DIR="${EVAL_RESULT_DIR:-/workspace/eval_results}"
+# Extra args appended verbatim to `vllm serve` (e.g. --compilation-config '...')
+EXTRA_SERVE_ARGS="${EXTRA_SERVE_ARGS:-}"
 
 SERVER_LOG="${SERVER_LOG:-/workspace/server_eval.log}"
 
@@ -76,6 +78,7 @@ echo "  CONC           : $CONC"
 echo "  EVAL_LIMIT     : ${EVAL_LIMIT:-all}"
 echo "  GEN_MAX_TOKENS : $GEN_MAX_TOKENS"
 echo "  EVAL_RESULT_DIR: $EVAL_RESULT_DIR"
+echo "  EXTRA_SERVE_ARGS: ${EXTRA_SERVE_ARGS:-(none)}"
 echo "======================================================="
 echo ""
 
@@ -112,6 +115,11 @@ fi
 # Start vLLM server
 # ---------------------------------------------------------------------------
 echo "[Step 1/3] Starting vLLM server..."
+# Parse EXTRA_SERVE_ARGS into an array so quoted JSON values are not word-split.
+_extra_args=()
+if [[ -n "$EXTRA_SERVE_ARGS" ]]; then
+    eval "_extra_args=($EXTRA_SERVE_ARGS)"
+fi
 set -x
 vllm serve "$MODEL" \
     --port "$PORT" \
@@ -122,6 +130,7 @@ vllm serve "$MODEL" \
     --block-size 1 \
     --trust-remote-code \
     --mm-encoder-tp-mode data \
+    "${_extra_args[@]}" \
     > "$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 set +x
