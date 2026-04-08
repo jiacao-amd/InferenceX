@@ -37,7 +37,7 @@ vllm serve $MODEL --port $PORT \
 --gpu-memory-utilization 0.95 \
 --max-model-len $MAX_MODEL_LEN \
 --block-size=64 \
---fuse-allreduce-rms \
+--optimization-level 3 \
 --trust-remote-code \
 --mm-encoder-tp-mode data > $SERVER_LOG 2>&1 &
 
